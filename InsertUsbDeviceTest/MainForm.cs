@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Windows.Forms;
+using InsertUsbDeviceTest.WMI;
 using WMI;
 namespace InsertUsbDeviceTest
 {
@@ -10,16 +11,16 @@ namespace InsertUsbDeviceTest
         public MainForm()
         {
             InitializeComponent();
-            DeviceWatcher dw = new DeviceWatcher(System.Threading.SynchronizationContext.Current);
+            var dw = new DeviceWatcher(System.Threading.SynchronizationContext.Current);
             UsbDeviceInfo udf = null;
             ejectButton.Enabled = !string.IsNullOrEmpty(txtPID.Text);
-            ejectButton.Click += (s, e) =>
+            ejectButton.Click += (sender, args) =>
             {
                 if (udf == null)
                 {
                     return;
                 }
-                bool ejectionResult = WinAPI.EjectDrive(udf.VolumeLabel);
+                var ejectionResult = WinAPI.EjectDrive(udf.VolumeLabel);
                 //udf = null;
                 //dw.Restart();
             };
@@ -33,11 +34,9 @@ namespace InsertUsbDeviceTest
 
             dw.DeviceRemoved += (o) =>
             {
-                if (udf != null && udf.PnpDeviceID == o.GetPropertyValue("PNPDeviceID").ToString())
-                {
-                    udf = null;
-                    SetFieldsText(udf);
-                }
+                if (udf == null || udf.PnpDeviceID != o.GetPropertyValue("PNPDeviceID").ToString()) return;
+                udf = null;
+                SetFieldsText(udf);
             };
 
             dw.DiskDriveInserted += (o) =>
@@ -65,11 +64,9 @@ namespace InsertUsbDeviceTest
 
             dw.VolumeDismounted += (o) =>
             {
-                if (udf != null && udf.VolumeDeviceID == o.GetPropertyValue("DeviceID").ToString())
-                {
-                    udf = null;
-                    SetFieldsText(udf);
-                }
+                if (udf == null || udf.VolumeDeviceID != o.GetPropertyValue("DeviceID").ToString()) return;
+                udf = null;
+                SetFieldsText(udf);
             };
             dw.PartitionArrived += (o) =>
             {
@@ -84,11 +81,9 @@ namespace InsertUsbDeviceTest
 
             dw.PartitionRemoved += (o) =>
             {
-                if (udf != null && udf.PartitionDeviceID == o.GetPropertyValue("DeviceID").ToString())
-                {
-                    udf = null;
-                    SetFieldsText(udf);
-                }
+                if (udf == null || udf.PartitionDeviceID != o.GetPropertyValue("DeviceID").ToString()) return;
+                udf = null;
+                SetFieldsText(udf);
             };
             //Остановка событий при закрытии формы
             FormClosing += (s, e) => { dw.Stop(); };
@@ -98,13 +93,14 @@ namespace InsertUsbDeviceTest
         {
             txtPID.Text = udf != null ? udf.PID : string.Empty;
             txtVID.Text = udf != null ? udf.VID : string.Empty;
-            txtSize.Text = udf != null ? udf.Size.ToString() : string.Empty;
+            txtSize.Text = udf?.Size.ToString() ?? string.Empty;
             txtSerial.Text = udf != null ? udf.SerialNumber : string.Empty;
         }
 
         private void txtPID_TextChanged(object sender, EventArgs e)
         {
-            ejectButton.Enabled = !string.IsNullOrEmpty((sender as TextBox).Text);
+            var textBox = sender as TextBox;
+            if (textBox != null) ejectButton.Enabled = !string.IsNullOrEmpty(textBox.Text);
         }
     }
 }
