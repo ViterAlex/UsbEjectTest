@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace InsertUsbDeviceTest
 {
-    static class WinAPI
+    internal static class WinApi
     {
         const int OPEN_EXISTING = 3;
         const uint GENERIC_READ = 0x80000000;
@@ -44,7 +44,7 @@ namespace InsertUsbDeviceTest
         /// <param name="letter">Буква диска, который нужно извлечь</param>
         public static bool EjectDrive(string letter)
         {
-            IntPtr handle = OpenVolume(letter);
+            var handle = OpenVolume(letter);
             if (handle.ToInt32() == -1)
             {
                 Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
@@ -73,7 +73,7 @@ namespace InsertUsbDeviceTest
 
         private static IntPtr OpenVolume(string driveLetter)
         {
-            string path = string.Format("\\\\.\\{0}", driveLetter);
+            var path = string.Format("\\\\.\\{0}", driveLetter);
             return CreateFile(path, GENERIC_READ | GENERIC_WRITE,
                 FILE_SHARE_READ | FILE_SHARE_WRITE,
                 IntPtr.Zero, OPEN_EXISTING, 0, IntPtr.Zero);
@@ -81,32 +81,32 @@ namespace InsertUsbDeviceTest
 
         private static bool LockVolume(IntPtr handle)
         {
-            int dwBytesReturned = 0;
+            var dwBytesReturned = 0;
             return DeviceIoControl(handle, FSCTL_LOCK_VOLUME, IntPtr.Zero, 0,
                 IntPtr.Zero, 0, ref dwBytesReturned, IntPtr.Zero);
         }
 
         private static bool DismountVolume(IntPtr handle)
         {
-            int dwBytesReturned = 0;
+            var dwBytesReturned = 0;
             return DeviceIoControl(handle, FSCTL_DISMOUNT_VOLUME, IntPtr.Zero, 0,
                 IntPtr.Zero, 0, ref dwBytesReturned, IntPtr.Zero);
         }
 
         private static bool PreventRemovalOfVolume(IntPtr handle, bool preventRemoval)
         {
-            int dwBytesReturned = 0;
-            PREVENT_MEDIA_REMOVAL PMRBuffer;
-            PMRBuffer.PreventMediaRemoval = preventRemoval;
-            IntPtr hPMRBuffer = Marshal.AllocHGlobal(Marshal.SizeOf(PMRBuffer));
-            Marshal.StructureToPtr(PMRBuffer, hPMRBuffer, false);
-            return DeviceIoControl(handle, IOCTL_STORAGE_MEDIA_REMOVAL, hPMRBuffer, Marshal.SizeOf(PMRBuffer),
+            var dwBytesReturned = 0;
+            PREVENT_MEDIA_REMOVAL pmrBuffer;
+            pmrBuffer.PreventMediaRemoval = preventRemoval;
+            var hPmrBuffer = Marshal.AllocHGlobal(Marshal.SizeOf(pmrBuffer));
+            Marshal.StructureToPtr(pmrBuffer, hPmrBuffer, false);
+            return DeviceIoControl(handle, IOCTL_STORAGE_MEDIA_REMOVAL, hPmrBuffer, Marshal.SizeOf(pmrBuffer),
                 IntPtr.Zero, 0, ref dwBytesReturned, IntPtr.Zero);
         }
 
         private static bool EjectVolume(IntPtr handle)
         {
-            int dwBytesReturned = 0;
+            var dwBytesReturned = 0;
             return DeviceIoControl(handle, IOCTL_STORAGE_EJECT_MEDIA, IntPtr.Zero, 0,
                 IntPtr.Zero, 0, ref dwBytesReturned, IntPtr.Zero);
         }

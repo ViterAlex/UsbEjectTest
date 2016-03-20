@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Management;
 using System.Threading;
 
-namespace WMI
+namespace InsertUsbDeviceTest.WMI
 {
     public class DeviceWatcher
     {
 
         //Поле для синхронизации между потоком формы и событий WMI
-        private SynchronizationContext _context;
+        private readonly SynchronizationContext _context;
         //Отслеживание создания классов WMI
         private List<ManagementEventWatcher> _createWatchers;
         //Отслеживание удаления классов WMI
@@ -32,15 +32,8 @@ namespace WMI
                 }
             }
         }
-        private int _createEventsCounter;
-        private int CreateEventsCounter
-        {
-            get { return _createEventsCounter; }
-            set
-            {
-                _createEventsCounter = value;
-            }
-        }
+
+        private int CreateEventsCounter { get; set; }
 
         public DeviceWatcher(SynchronizationContext context)
         {
@@ -53,15 +46,15 @@ namespace WMI
         private void AddHandlers()
         {
             _removeHandlers = new List<EventArrivedEventHandler>() {
-                new EventArrivedEventHandler(DeviceRemovedEvent),
-                new EventArrivedEventHandler(VolumeDismountedEvent),
-                new EventArrivedEventHandler(PartitionRemoveEvent)
+                DeviceRemovedEvent,
+                VolumeDismountedEvent,
+                PartitionRemoveEvent
             };
             _createHandlers = new List<EventArrivedEventHandler>() {
-                new EventArrivedEventHandler(DeviceInsertedEvent),
-                new EventArrivedEventHandler(DiskDriveInsertedEvent),
-                new EventArrivedEventHandler(VolumeMountedEvent),
-                new EventArrivedEventHandler(PartitionArriveEvent),
+                DeviceInsertedEvent,
+                DiskDriveInsertedEvent,
+                VolumeMountedEvent,
+                PartitionArriveEvent,
             };
         }
 
@@ -71,7 +64,7 @@ namespace WMI
             _createWatchers.ForEach(w => w.Start());
             _removeWatchers.ForEach(w => w.Start());
             _removeEventsCounter = _removeHandlers.Count;
-            _createEventsCounter = _createHandlers.Count;
+            CreateEventsCounter = _createHandlers.Count;
         }
 
         private void AddWatchers()
@@ -138,65 +131,65 @@ namespace WMI
         //Обёртка над событием DeviceInserted
         protected void OnDeviceInserted(object o)
         {
-            if (DeviceInserted != null)
-            {
-                DeviceInserted((ManagementBaseObject)o);
-                CreateEventsCounter++;
-            }
+            if (DeviceInserted == null) return;
+            DeviceInserted((ManagementBaseObject)o);
+            CreateEventsCounter++;
         }
         //Обёртка над событием DeviceRemoved
         protected void OnDeviceRemoved(object o)
         {
-            if (DeviceRemoved != null)
-            {
-                DeviceRemoved((ManagementBaseObject)o);
-                RemoveEventsCounter--;
-            }
+            if (DeviceRemoved == null) return;
+            DeviceRemoved((ManagementBaseObject)o);
+            RemoveEventsCounter--;
         }
         //Обёртка над событием DiskDriveInserted
         protected void OnDiskDriveInserted(object o)
         {
-            if (DiskDriveInserted != null)
-            {
-                DiskDriveInserted((ManagementBaseObject)o);
-                CreateEventsCounter++;
-            }
+            if (DiskDriveInserted == null) return;
+            DiskDriveInserted((ManagementBaseObject)o);
+            CreateEventsCounter++;
         }
         //Обёртка над событием VolumeMounted
         protected void OnVolumeMounted(object o)
         {
-            if (VolumeMounted != null)
-            {
-                VolumeMounted((ManagementBaseObject)o);
-                CreateEventsCounter++;
-            }
+            if (VolumeMounted == null) return;
+            var obj = (ManagementBaseObject)o;
+            VolumeMounted(obj);
+            CreateEventsCounter++;
+            //После монтирования тома, можно узнать букву диска и извлечь его при необходимости
+            OnDeviceAdded(o);
         }
         //Обёртка над событием VolumeDismounted
         protected void OnVolumeDismounted(object o)
         {
-            if (VolumeDismounted != null)
-            {
-                VolumeDismounted((ManagementBaseObject)o);
-                RemoveEventsCounter--;
-            }
+            if (VolumeDismounted == null) return;
+            VolumeDismounted((ManagementBaseObject)o);
+            RemoveEventsCounter--;
         }
-        //Обёртка над событием PartitionArrived
+        //Обёртка над событием PartitionCreated
         protected void OnPartitionArrived(object o)
         {
-            if (PartitionArrived != null)
-            {
-                PartitionArrived((ManagementBaseObject)o);
-                CreateEventsCounter++;
-            }
+            if (PartitionCreated == null) return;
+            PartitionCreated((ManagementBaseObject)o);
+            CreateEventsCounter++;
         }
         //Обёртка над событием PartitionRemoved
         protected void OnPartitionRemoved(object o)
         {
-            if (PartitionRemoved != null)
-            {
-                PartitionRemoved((ManagementBaseObject)o);
-                RemoveEventsCounter--;
-            }
+            if (PartitionRemoved == null) return;
+            PartitionRemoved((ManagementBaseObject)o);
+            RemoveEventsCounter--;
+        }
+        //Обёртка над событием DeviceAdded
+        protected void OnDeviceAdded(object o)
+        {
+            if (DeviceAdded == null) return;
+            var obj = (ManagementBaseObject)o;
+            if (obj == null) return;
+            var e = new DeviceAddingEventArgs() { DriveLetter = obj.GetPropertyValue("Caption").ToString() };
+            DeviceAdded(obj, e);
+            if (!e.Cancel) return;
+            WinApi.EjectDrive(e.DriveLetter);
         }
         #endregion
 
@@ -221,8 +214,17 @@ namespace WMI
         /// Событие, возникающее при отключении тома в системе 
         /// </summary>
         public event Action<ManagementBaseObject> VolumeDismounted;
-        public event Action<ManagementBaseObject> PartitionArrived;
+        /// <summary>
+        /// Событие, возникающее при создании раздела в системе 
+        /// </summary>
+        public event Action<ManagementBaseObject> PartitionCreated;
+        /// <summary>
+        /// Событие, возникающее при удалении раздела в системе 
+        /// </summary>
         public event Action<ManagementBaseObject> PartitionRemoved;
+
+        public event EventHandler<DeviceAddingEventArgs> DeviceAdded;
+
         #endregion
     }
 }
