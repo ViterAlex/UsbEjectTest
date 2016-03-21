@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
-using InsertUsbDeviceTest.WMI;
+using UsbWmi;
+using UsbWmi.WMI;
 
 namespace InsertUsbDeviceTest
 {

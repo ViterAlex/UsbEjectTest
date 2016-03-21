@@ -1,19 +1,19 @@
-﻿namespace InsertUsbDeviceTest.WMI
+﻿namespace UsbWmi
 {
     public class UsbDeviceInfo
     {
 
-        public string DeviceID { get; set; }
-        private string pnpDeviceID;
+        public string DeviceId { get; set; }
+        private string _pnpDeviceId;
 
-        public string PnpDeviceID
+        public string PnpDeviceId
         {
-            get { return pnpDeviceID; }
+            get { return _pnpDeviceId; }
             set
             {
-                pnpDeviceID = value;
-                VID = pnpDeviceID.Split('\\')[1].Split('&')[0].Substring(4);
-                PID = pnpDeviceID.Split('\\')[1].Split('&')[1].Substring(4);
+                _pnpDeviceId = value;
+                VID = _pnpDeviceId.Split('\\')[1].Split('&')[0].Substring(4);
+                PID = _pnpDeviceId.Split('\\')[1].Split('&')[1].Substring(4);
             }
         }
 

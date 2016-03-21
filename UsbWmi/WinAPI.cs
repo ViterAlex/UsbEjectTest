@@ -1,23 +1,24 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+// ReSharper disable InconsistentNaming
 
 namespace UsbWmi
 {
-    internal static class WinApi
+    public static class WinApi
     {
-        const int OPEN_EXISTING = 3;
-        const uint GENERIC_READ = 0x80000000;
-        const uint GENERIC_WRITE = 0x40000000;
-        const uint FILE_SHARE_READ = 1;
-        const uint FILE_SHARE_WRITE = 2;
-        const uint FSCTL_LOCK_VOLUME = 0x00090018;
-        const uint FSCTL_DISMOUNT_VOLUME = 0x00090020;
-        const uint FSCTL_UNLOCK_VOLUME = 0x0009001c;
-        const uint IOCTL_STORAGE_EJECT_MEDIA = 0x2D4808;
-        const uint IOCTL_STORAGE_MEDIA_REMOVAL = 0x002D4804;
+        private const int OPEN_EXISTING = 3;
+        private const uint GENERIC_READ = 0x80000000;
+        private const uint GENERIC_WRITE = 0x40000000;
+        private const uint FILE_SHARE_READ = 1;
+        private const uint FILE_SHARE_WRITE = 2;
+        private const uint FSCTL_LOCK_VOLUME = 0x00090018;
+        private const uint FSCTL_DISMOUNT_VOLUME = 0x00090020;
+        private const uint FSCTL_UNLOCK_VOLUME = 0x0009001c;
+        private const uint IOCTL_STORAGE_EJECT_MEDIA = 0x2D4808;
+        private const uint IOCTL_STORAGE_MEDIA_REMOVAL = 0x002D4804;
 
         [StructLayout(LayoutKind.Sequential)]
-        struct PREVENT_MEDIA_REMOVAL
+        private struct PREVENT_MEDIA_REMOVAL
         {
             public bool PreventMediaRemoval;
         }

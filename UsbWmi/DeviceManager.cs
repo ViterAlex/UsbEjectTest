@@ -34,7 +34,7 @@ namespace UsbWmi
 
         private void _dw_PartitionRemoved(System.Management.ManagementBaseObject obj)
         {
-            if (_udf == null || _udf.PartitionDeviceID != obj.GetPropertyValue("DeviceID").ToString()) return;
+            if (_udf == null || _udf.PartitionDeviceID != obj.GetPropertyValue("DeviceId").ToString()) return;
             _udf = null;
         }
 
@@ -45,12 +45,12 @@ namespace UsbWmi
             {
                 System.Threading.Thread.Sleep(100);
             }
-            _udf.PartitionDeviceID = obj.GetPropertyValue("DeviceID").ToString();
+            _udf.PartitionDeviceID = obj.GetPropertyValue("DeviceId").ToString();
         }
 
         private void _dw_VolumeDismounted(System.Management.ManagementBaseObject obj)
         {
-            if (_udf == null || _udf.VolumeDeviceID != obj.GetPropertyValue("DeviceID").ToString()) return;
+            if (_udf == null || _udf.VolumeDeviceID != obj.GetPropertyValue("DeviceId").ToString()) return;
             _udf = null;
         }
 
@@ -61,7 +61,7 @@ namespace UsbWmi
             {
                 System.Threading.Thread.Sleep(100);
             }
-            _udf.VolumeDeviceID = obj.GetPropertyValue("DeviceID").ToString();
+            _udf.VolumeDeviceID = obj.GetPropertyValue("DeviceId").ToString();
             _udf.VolumeLabel = obj.GetPropertyValue("Caption").ToString().Substring(0, 2);
         }
 
@@ -78,7 +78,7 @@ namespace UsbWmi
 
         private void _dw_DeviceRemoved(System.Management.ManagementBaseObject obj)
         {
-            if (_udf == null || _udf.PnpDeviceID != obj.GetPropertyValue("PNPDeviceID").ToString()) return;
+            if (_udf == null || _udf.PnpDeviceId != obj.GetPropertyValue("PNPDeviceID").ToString()) return;
             _udf = null;
         }
 
@@ -86,7 +86,7 @@ namespace UsbWmi
         {
             _udf = new UsbDeviceInfo()
             {
-                PnpDeviceID = obj.GetPropertyValue("PNPDeviceID").ToString()
+                PnpDeviceId = obj.GetPropertyValue("PNPDeviceID").ToString()
             };
         }
     }
