@@ -37,6 +37,7 @@
             this.label4 = new System.Windows.Forms.Label();
             this.txtSize = new System.Windows.Forms.TextBox();
             this.ejectButton = new System.Windows.Forms.Button();
+            this.ejectImmedCheckBox = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // label1
@@ -120,6 +121,16 @@
             this.ejectButton.Text = "Извлечь";
             this.ejectButton.UseVisualStyleBackColor = true;
             // 
+            // ejectImmedCheckBox
+            // 
+            this.ejectImmedCheckBox.AutoSize = true;
+            this.ejectImmedCheckBox.Location = new System.Drawing.Point(53, 145);
+            this.ejectImmedCheckBox.Name = "ejectImmedCheckBox";
+            this.ejectImmedCheckBox.Size = new System.Drawing.Size(112, 17);
+            this.ejectImmedCheckBox.TabIndex = 5;
+            this.ejectImmedCheckBox.Text = "Сразу извлекать";
+            this.ejectImmedCheckBox.UseVisualStyleBackColor = true;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -127,6 +138,7 @@
             this.AutoSize = true;
             this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.ClientSize = new System.Drawing.Size(284, 195);
+            this.Controls.Add(this.ejectImmedCheckBox);
             this.Controls.Add(this.ejectButton);
             this.Controls.Add(this.txtSize);
             this.Controls.Add(this.label4);
@@ -155,6 +167,7 @@
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.TextBox txtSize;
         private System.Windows.Forms.Button ejectButton;
+        private System.Windows.Forms.CheckBox ejectImmedCheckBox;
     }
 }
 

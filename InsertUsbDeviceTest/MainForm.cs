@@ -28,13 +28,13 @@ namespace InsertUsbDeviceTest
             {
                 udf = new UsbDeviceInfo()
                 {
-                    PnpDeviceID = o.GetPropertyValue("PNPDeviceID").ToString()
+                    PnpDeviceId = o.GetPropertyValue("PNPDeviceID").ToString()
                 };
             };
 
             dw.DeviceRemoved += (o) =>
             {
-                if (udf == null || udf.PnpDeviceID != o.GetPropertyValue("PNPDeviceID").ToString()) return;
+                if (udf == null || udf.PnpDeviceId != o.GetPropertyValue("PNPDeviceID").ToString()) return;
                 udf = null;
                 SetFieldsText(udf);
             };

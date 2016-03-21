@@ -18,18 +18,18 @@ namespace UsbWmi
             _dw.VolumeDismounted += _dw_VolumeDismounted;
             _dw.PartitionCreated += _dw_PartitionCreated;
             _dw.PartitionRemoved += _dw_PartitionRemoved;
-            _dw.DeviceAdded += _dw_DeviceAdded;
+            _dw.AllCreateEventsFired += DwAllCreateEventsFired;
+        }
+
+        private void DwAllCreateEventsFired()
+        {
+            if (AllowedDevices != null && !AllowedDevices.Contains(_udf))
+                WinApi.EjectDrive(_udf.VolumeLabel);
         }
 
         public void Stop()
         {
             _dw.Stop();
-        }
-
-        private void _dw_DeviceAdded(object sender, DeviceAddingEventArgs e)
-        {
-            if (_udf == null || AllowedDevices?.Count == 0) return;
-            if (AllowedDevices != null) e.Cancel = AllowedDevices.Contains(_udf);
         }
 
         private void _dw_PartitionRemoved(System.Management.ManagementBaseObject obj)

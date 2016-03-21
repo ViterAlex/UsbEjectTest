@@ -7,7 +7,6 @@ namespace UsbWmi.WMI
 {
     public class DeviceWatcher
     {
-
         //Поле для синхронизации между потоком формы и событий WMI
         private readonly SynchronizationContext _context;
         //Отслеживание создания классов WMI
@@ -20,6 +19,7 @@ namespace UsbWmi.WMI
         private List<EventArrivedEventHandler> _removeHandlers;
 
         private int _removeEventsCounter;
+
         private int RemoveEventsCounter
         {
             get { return _removeEventsCounter; }
@@ -33,10 +33,24 @@ namespace UsbWmi.WMI
             }
         }
 
-        private int CreateEventsCounter { get; set; }
+        private int _createEventsCounter;
+        private int CreateEventsCounter
+        {
+            get { return _createEventsCounter; }
+            set
+            {
+                _createEventsCounter = value;
+                //После последнего создающего события, проверяем нужно ли извлечь диск
+                if (_createEventsCounter == _createWatchers.Count)
+                {
+                    _context.Send(OnAllEventsFired,null);
+                    Restart();
+                }
+            }
+        }
 
         public DeviceWatcher(SynchronizationContext context)
-            :this()
+            : this()
         {
             _context = context;
         }
@@ -69,7 +83,7 @@ namespace UsbWmi.WMI
             _createWatchers.ForEach(w => w.Start());
             _removeWatchers.ForEach(w => w.Start());
             _removeEventsCounter = _removeHandlers.Count;
-            CreateEventsCounter = _createHandlers.Count;
+            CreateEventsCounter = 0;
         }
 
         private void AddWatchers()
@@ -89,7 +103,7 @@ namespace UsbWmi.WMI
             _removeWatchers.ForEach(w => w.EventArrived += _removeHandlers[_removeWatchers.IndexOf(w)]);
         }
 
-        internal void Stop()
+        public void Stop()
         {
             _createWatchers.ForEach(w => w.Stop());
             _removeWatchers.ForEach(w => w.Stop());
@@ -161,8 +175,6 @@ namespace UsbWmi.WMI
             var obj = (ManagementBaseObject)o;
             VolumeMounted(obj);
             CreateEventsCounter++;
-            //После монтирования тома, можно узнать букву диска и извлечь его при необходимости
-            OnDeviceAdded(o);
         }
         //Обёртка над событием VolumeDismounted
         protected void OnVolumeDismounted(object o)
@@ -185,17 +197,12 @@ namespace UsbWmi.WMI
             PartitionRemoved((ManagementBaseObject)o);
             RemoveEventsCounter--;
         }
-        //Обёртка над событием DeviceAdded
-        protected void OnDeviceAdded(object o)
+        //Обёртка над событием AllCreateEventsFired
+        private void OnAllEventsFired(object state)
         {
-            if (DeviceAdded == null) return;
-            var obj = (ManagementBaseObject)o;
-            if (obj == null) return;
-            var e = new DeviceAddingEventArgs() { DriveLetter = obj.GetPropertyValue("Caption").ToString() };
-            DeviceAdded(obj, e);
-            if (!e.Cancel) return;
-            WinApi.EjectDrive(e.DriveLetter);
+            AllCreateEventsFired?.Invoke();
         }
+
         #endregion
 
         #region Events
@@ -227,8 +234,10 @@ namespace UsbWmi.WMI
         /// Событие, возникающее при удалении раздела в системе 
         /// </summary>
         public event Action<ManagementBaseObject> PartitionRemoved;
-
-        public event EventHandler<DeviceAddingEventArgs> DeviceAdded;
+        /// <summary>
+        /// Событие, возникающее после всех создающих событий
+        /// </summary>
+        public event Action AllCreateEventsFired;
 
         #endregion
     }
