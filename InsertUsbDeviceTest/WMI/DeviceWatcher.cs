@@ -36,13 +36,18 @@ namespace InsertUsbDeviceTest.WMI
         private int CreateEventsCounter { get; set; }
 
         public DeviceWatcher(SynchronizationContext context)
+            :this()
         {
-            AddHandlers();
-            AddWatchers();
-            Restart();
             _context = context;
         }
 
+        public DeviceWatcher()
+        {
+            _context = new SynchronizationContext();
+            AddHandlers();
+            AddWatchers();
+            Restart();
+        }
         private void AddHandlers()
         {
             _removeHandlers = new List<EventArrivedEventHandler>() {

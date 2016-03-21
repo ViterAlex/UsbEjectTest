@@ -1,4 +1,4 @@
-﻿namespace WMI
+﻿namespace InsertUsbDeviceTest.WMI
 {
     public class UsbDeviceInfo
     {
