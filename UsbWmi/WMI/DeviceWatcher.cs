@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Management;
 using System.Threading;
 
@@ -43,7 +44,7 @@ namespace UsbWmi.WMI
                 //После последнего создающего события, проверяем нужно ли извлечь диск
                 if (_createEventsCounter == _createWatchers.Count)
                 {
-                    _context.Send(OnAllEventsFired,null);
+                    _context.Send(OnAllEventsFired, null);
                     Restart();
                 }
             }
@@ -152,6 +153,7 @@ namespace UsbWmi.WMI
         {
             if (DeviceInserted == null) return;
             DeviceInserted((ManagementBaseObject)o);
+            Debug.WriteLine("OnDeviceInserted");
             CreateEventsCounter++;
         }
         //Обёртка над событием DeviceRemoved
@@ -166,6 +168,7 @@ namespace UsbWmi.WMI
         {
             if (DiskDriveInserted == null) return;
             DiskDriveInserted((ManagementBaseObject)o);
+            Debug.WriteLine("OnDiskDriveInserted");
             CreateEventsCounter++;
         }
         //Обёртка над событием VolumeMounted
@@ -174,6 +177,7 @@ namespace UsbWmi.WMI
             if (VolumeMounted == null) return;
             var obj = (ManagementBaseObject)o;
             VolumeMounted(obj);
+            Debug.WriteLine("OnVolumeMounted");
             CreateEventsCounter++;
         }
         //Обёртка над событием VolumeDismounted
@@ -188,6 +192,7 @@ namespace UsbWmi.WMI
         {
             if (PartitionCreated == null) return;
             PartitionCreated((ManagementBaseObject)o);
+            Debug.WriteLine("OnPartitionArrived");
             CreateEventsCounter++;
         }
         //Обёртка над событием PartitionRemoved
@@ -201,6 +206,7 @@ namespace UsbWmi.WMI
         private void OnAllEventsFired(object state)
         {
             AllCreateEventsFired?.Invoke();
+            Debug.WriteLine("OnAllEventsFired");
         }
 
         #endregion

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UsbWmi.WMI;
 
 namespace UsbWmi
@@ -8,7 +9,8 @@ namespace UsbWmi
         public List<UsbDeviceInfo> AllowedDevices { get; set; }
         private UsbDeviceInfo _udf;
         private readonly DeviceWatcher _dw = new DeviceWatcher();
-
+        public event Action<UsbDeviceInfo> DeviceAccepted;
+        public event Action<UsbDeviceInfo> DeviceRejected;
         public DeviceManager()
         {
             _dw.DeviceInserted += _dw_DeviceInserted;
@@ -23,8 +25,26 @@ namespace UsbWmi
 
         private void DwAllCreateEventsFired()
         {
-            if (AllowedDevices != null && !AllowedDevices.Contains(_udf))
+
+            if (AllowedDevices.Contains(_udf))
+                OnDeviceAccepted(_udf);
+            else
+            {
                 WinApi.EjectDrive(_udf.VolumeLabel);
+                OnDeviceRejected(_udf);
+            }
+        }
+
+        protected void OnDeviceRejected(UsbDeviceInfo deviceInfo)
+        {
+            if (DeviceRejected == null) return;
+            DeviceRejected(deviceInfo);
+        }
+
+        protected void OnDeviceAccepted(UsbDeviceInfo deviceInfo)
+        {
+            if (DeviceAccepted == null) return;
+            DeviceAccepted(deviceInfo);
         }
 
         public void Stop()
