@@ -4,6 +4,6 @@ namespace UsbWmi.WMI
 {
     public class DeviceAddingEventArgs : CancelEventArgs
     {
-        public string DriveLetter { get; set; }
+        public string HashCode { get; set; }
     }
 }

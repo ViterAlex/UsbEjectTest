@@ -20,13 +20,16 @@ namespace UsbWmi.WMI
         private List<EventArrivedEventHandler> _removeHandlers;
 
         private int _removeEventsCounter;
-
+        /// <summary>
+        /// Счётчик события удаления
+        /// </summary>
         private int RemoveEventsCounter
         {
             get { return _removeEventsCounter; }
             set
             {
                 _removeEventsCounter = value;
+                //После всех событий удаления перезапускаем службы
                 if (_removeEventsCounter == 0)
                 {
                     Restart();
@@ -35,6 +38,9 @@ namespace UsbWmi.WMI
         }
 
         private int _createEventsCounter;
+        /// <summary>
+        /// Счётчик вызовов событий создания
+        /// </summary>
         private int CreateEventsCounter
         {
             get { return _createEventsCounter; }

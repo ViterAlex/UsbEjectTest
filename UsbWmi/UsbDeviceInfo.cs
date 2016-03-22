@@ -28,7 +28,12 @@
         public string PartitionDeviceID { get; set; }
         public override string ToString()
         {
-            return string.Format("{0} ({1})", DiskName, VolumeLabel);
+            return $"{DiskName} ({VolumeLabel})";
+        }
+        //TODO:Написать собственную реализацию вычисления хеш-кода
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
         }
     }
 }

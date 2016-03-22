@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using UsbWmi.WMI;
 
 namespace UsbWmi
@@ -8,11 +9,16 @@ namespace UsbWmi
     {
         public List<UsbDeviceInfo> AllowedDevices { get; set; }
         private UsbDeviceInfo _udf;
-        private readonly DeviceWatcher _dw = new DeviceWatcher();
+        public event EventHandler<DeviceAddingEventArgs> NewDevice;
         public event Action<UsbDeviceInfo> DeviceAccepted;
         public event Action<UsbDeviceInfo> DeviceRejected;
-        public DeviceManager()
+        private readonly DeviceWatcher _dw;
+        //Контекст синхронизации
+        private readonly SynchronizationContext _context;
+        public DeviceManager(SynchronizationContext context)
         {
+            _context = context;
+            _dw = new DeviceWatcher(_context);
             _dw.DeviceInserted += _dw_DeviceInserted;
             _dw.DeviceRemoved += _dw_DeviceRemoved;
             _dw.DiskDriveInserted += _dw_DiskDriveInserted;
@@ -25,13 +31,27 @@ namespace UsbWmi
 
         private void DwAllCreateEventsFired()
         {
+            _context.Send(OnNewDevice, _udf);
+        }
 
-            if (AllowedDevices.Contains(_udf))
-                OnDeviceAccepted(_udf);
+        protected void OnNewDevice(object udf)
+        {
+            if (NewDevice == null) return;
+            if (!(udf is UsbDeviceInfo)) return;
+            var eventArgs = new DeviceAddingEventArgs
+            {
+                HashCode = udf.GetHashCode().ToString(),
+                Cancel = false
+            };
+            NewDevice((UsbDeviceInfo)udf, eventArgs);
+            if (eventArgs.Cancel)
+            {
+                WinApi.EjectDrive(((UsbDeviceInfo)udf).VolumeLabel);
+                OnDeviceRejected((UsbDeviceInfo)udf);
+            }
             else
             {
-                WinApi.EjectDrive(_udf.VolumeLabel);
-                OnDeviceRejected(_udf);
+                OnDeviceAccepted((UsbDeviceInfo)udf);
             }
         }
 
